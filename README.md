@@ -9,6 +9,8 @@ mkdir proxy-server
 cd proxy-server
 
 git clone https://github.com/OmerShlush/proxy-server.git
+
 npm install
+
 node proxy-server.js
 
