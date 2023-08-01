@@ -12,36 +12,30 @@ const proxyServer = http.createServer((req, res) => {
   const requestOptions = {
     method: req.method,
     headers: req.headers,
-    rejectUnauthorized: false, // Ignore SSL certificate errors (for development only)
+    rejectUnauthorized: false,
   };
 
   const destinationOptions = parse(destinationUrl + req.url);
 
-  // Prepare data for POST requests
-  if (req.method === 'POST' || req.method === 'PUT') {
+  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE' || req.method === 'UPDATE') {
     let requestBody = '';
     req.on('data', (chunk) => {
       requestBody += chunk;
     });
 
     req.on('end', () => {
-      // Log the request body
       writeToLogFile('Request Body:', requestBody);
 
       requestOptions.headers['Content-Length'] = Buffer.byteLength(requestBody);
-
-      // Fix for POST and PUT requests: Set the correct request method in destinationOptions
       destinationOptions.method = req.method;
 
       const proxyRequest = (destinationOptions.protocol === 'https:' ? https : http).request(destinationOptions, (proxyResponse) => {
-        // Log outgoing response headers
         const logResponseHeaders = {
           statusCode: proxyResponse.statusCode,
           headers: proxyResponse.headers,
         };
         writeToLogFile('Outgoing Response Headers:', logResponseHeaders);
 
-        // Forward the response from the destination server to the original client
         res.writeHead(proxyResponse.statusCode, proxyResponse.headers);
 
         let responseData = '';
@@ -52,7 +46,6 @@ const proxyServer = http.createServer((req, res) => {
 
         proxyResponse.on('end', () => {
           res.end();
-          // Log the response data received from the destination server
           writeToLogFile('Response Data:', responseData);
         });
       });
@@ -63,21 +56,17 @@ const proxyServer = http.createServer((req, res) => {
         res.end('Proxy request error');
       });
 
-      // Make the proxy request after receiving the entire request body
       proxyRequest.write(requestBody);
       proxyRequest.end();
     });
   } else {
-    // For GET requests, simply forward the request to the destination server
     const proxyRequest = (destinationOptions.protocol === 'https:' ? https : http).request(destinationOptions, (proxyResponse) => {
-      // Log outgoing response headers
       const logResponseHeaders = {
         statusCode: proxyResponse.statusCode,
         headers: proxyResponse.headers,
       };
       writeToLogFile('Outgoing Response Headers:', logResponseHeaders);
 
-      // Forward the response from the destination server to the original client
       res.writeHead(proxyResponse.statusCode, proxyResponse.headers);
 
       let responseData = '';
@@ -88,7 +77,6 @@ const proxyServer = http.createServer((req, res) => {
 
       proxyResponse.on('end', () => {
         res.end();
-        // Log the response data received from the destination server
         writeToLogFile('Response Data:', responseData);
       });
     });
@@ -99,11 +87,9 @@ const proxyServer = http.createServer((req, res) => {
       res.end('Proxy request error');
     });
 
-    // Make the proxy request
     proxyRequest.end();
   }
 
-  // Log incoming request headers
   const logRequestHeaders = {
     method: req.method,
     url: req.url,
