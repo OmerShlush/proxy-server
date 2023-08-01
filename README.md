@@ -6,6 +6,9 @@ Accept Requests and forward them towards specific address while logging the Requ
 
 Modify proxy-server.js >> Set address towards the base address of the service required.
 
+
+**Setup guide:**
+
 mkdir proxy-server
 
 cd proxy-server
