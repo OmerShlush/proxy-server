@@ -1,4 +1,4 @@
-#Proxy-Server - Omer Shlush
+#Proxy-Server
 
 Simple Proxy-Server based NodeJS
 Accept Requests and forward them towards specific address while logging the Requests & Responses.
